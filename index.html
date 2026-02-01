@@ -7,12 +7,13 @@
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; padding: 18px; background: #f7f7f8; color: #111; }
-    .card { max-width: 920px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .card { max-width: 980px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
     h1 { margin: 0 0 8px; font-size: 20px; }
     .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    button, select, input[type="text"] {
+    button, select, input[type="text"], textarea {
       font-size: 16px; padding: 10px 12px; border-radius: 12px; border: 1px solid #ddd; background: #fff;
     }
+    textarea { width: 100%; min-height: 120px; resize: vertical; }
     button { cursor: pointer; }
     button.primary { background: #111; color: #fff; border-color: #111; }
     button:disabled { opacity: .5; cursor: not-allowed; }
@@ -22,13 +23,15 @@
     .bad { border-color:#fecaca; background:#fef2f2; }
     .hint { color:#444; font-size: 14px; line-height: 1.4; }
     .grid { display:grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
-    @media (min-width: 780px) { .grid { grid-template-columns: 1.2fr .8fr; } }
+    @media (min-width: 860px) { .grid { grid-template-columns: 1.2fr .8fr; } }
     .box { border: 1px solid #eee; border-radius: 14px; padding: 12px; background:#fff; }
     .label { font-size: 12px; color:#555; margin-bottom: 6px; }
     .big { font-size: 22px; font-weight: 650; letter-spacing: .2px; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
     .small { font-size: 13px; color:#555; }
     .footer { margin-top: 12px; font-size: 12px; color:#666; }
+    .split { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
+    .split > * { flex: 1 1 260px; }
   </style>
 </head>
 <body>
@@ -54,6 +57,7 @@
           <button id="repeatBtn" disabled>Repeat</button>
           <button id="sentenceBtn" disabled>Say sentence</button>
           <button id="nextBtn" disabled>Next word</button>
+          <button id="revealBtn" disabled>Reveal answer</button>
         </div>
 
         <div class="row" style="margin-top:12px;">
@@ -80,46 +84,60 @@
       </div>
 
       <div class="box">
-        <div class="label">Settings</div>
-
-        <div class="row" style="margin-top:6px;">
-          <span class="label" style="margin:0;">Voice</span>
-          <select id="voiceSelect" style="flex:1; min-width: 240px;"></select>
+        <div class="label">Word list</div>
+        <div class="small">
+          You don’t need to load anything to start — there’s a starter list. But you can paste Oliver’s list here anytime.
+          <br/><br/>
+          <b>Format:</b> one per line. Optionally add a sentence with a pipe <span class="mono">|</span>.
         </div>
 
-        <div class="row" style="margin-top:8px;">
-          <span class="label" style="margin:0;">Speed</span>
-          <select id="rateSelect">
-            <option value="0.85">Slower</option>
-            <option value="1" selected>Normal</option>
-            <option value="1.15">Slightly faster</option>
-          </select>
-
-          <span class="label" style="margin:0;">Pitch</span>
-          <select id="pitchSelect">
-            <option value="0.9">Lower</option>
-            <option value="1" selected>Normal</option>
-            <option value="1.1">Slightly higher</option>
-          </select>
-        </div>
-
-        <div class="row" style="margin-top:10px;">
-          <button id="shuffleBtn">Shuffle list</button>
-          <button id="revealBtn" disabled>Reveal answer</button>
-        </div>
-
-        <div class="status" style="margin-top:12px;">
-          <div class="label">Word list (editable in code)</div>
-          <div class="small">
-            Right now this is a starter set. If you paste Oliver’s real list, I’ll format it for you.
+        <div class="split" style="margin-top:10px;">
+          <div>
+            <div class="label">Paste list</div>
+            <textarea id="listInput" placeholder="winter | In winter, we wear warm coats.
+because | I stayed inside because it was raining.
+beautiful"></textarea>
+            <div class="row" style="margin-top:10px;">
+              <button id="loadListBtn">Load list</button>
+              <button id="shuffleBtn">Shuffle</button>
+              <button id="resetBtn">Reset to starter list</button>
+            </div>
           </div>
-          <div id="listPreview" class="small mono" style="margin-top:8px; white-space:pre-wrap;"></div>
+          <div>
+            <div class="status">
+              <div class="label">Preview</div>
+              <div id="listPreview" class="small mono" style="white-space:pre-wrap;"></div>
+            </div>
+
+            <div class="status" style="margin-top:12px;">
+              <div class="label">Voice</div>
+              <div class="row" style="margin-top:6px;">
+                <select id="voiceSelect" style="flex:1; min-width: 240px;"></select>
+              </div>
+              <div class="row" style="margin-top:8px;">
+                <span class="label" style="margin:0;">Speed</span>
+                <select id="rateSelect">
+                  <option value="0.85">Slower</option>
+                  <option value="1" selected>Normal</option>
+                  <option value="1.15">Slightly faster</option>
+                </select>
+
+                <span class="label" style="margin:0;">Pitch</span>
+                <select id="pitchSelect">
+                  <option value="0.9">Lower</option>
+                  <option value="1" selected>Normal</option>
+                  <option value="1.1">Slightly higher</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="status" style="margin-top:12px;">
+              <div class="label">Device support</div>
+              <div id="supportText" class="small"></div>
+            </div>
+          </div>
         </div>
 
-        <div class="status" style="margin-top:12px;">
-          <div class="label">Device support</div>
-          <div id="supportText" class="small"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -127,10 +145,9 @@
 <script>
 (() => {
   // -----------------------------
-  // 1) EDIT YOUR WORD LIST HERE
+  // Starter list (used unless you paste your own)
   // -----------------------------
-  // Each entry: { word: "winter", sentence: "In winter, we wear warm coats." }
-  const WORDS = [
+  const STARTER_WORDS = [
     { word: "winter", sentence: "In winter, we wear warm coats." },
     { word: "animal", sentence: "A dog is an animal." },
     { word: "helpful", sentence: "It is helpful to share." },
@@ -144,8 +161,9 @@
   ];
 
   // -----------------------------
-  // 2) STATE
+  // State
   // -----------------------------
+  let words = JSON.parse(JSON.stringify(STARTER_WORDS));
   let idx = -1;
   let current = null;
   let voices = [];
@@ -153,7 +171,7 @@
   let isListening = false;
 
   // -----------------------------
-  // 3) ELEMENTS
+  // Elements
   // -----------------------------
   const el = (id) => document.getElementById(id);
   const wordDisplay = el("wordDisplay");
@@ -167,7 +185,6 @@
   const sentenceBtn = el("sentenceBtn");
   const nextBtn = el("nextBtn");
   const revealBtn = el("revealBtn");
-  const shuffleBtn = el("shuffleBtn");
 
   const modeSelect = el("modeSelect");
   const listenBtn = el("listenBtn");
@@ -177,11 +194,17 @@
   const voiceSelect = el("voiceSelect");
   const rateSelect = el("rateSelect");
   const pitchSelect = el("pitchSelect");
+
+  const listInput = el("listInput");
+  const loadListBtn = el("loadListBtn");
+  const shuffleBtn = el("shuffleBtn");
+  const resetBtn = el("resetBtn");
   const listPreview = el("listPreview");
+
   const supportText = el("supportText");
 
   // -----------------------------
-  // 4) UTIL
+  // Utility
   // -----------------------------
   function setStatus(message, kind = "neutral") {
     statusBox.classList.remove("ok", "bad");
@@ -197,7 +220,23 @@
   }
 
   function updateProgress() {
-    progressPill.textContent = `${Math.max(0, idx + 1)} / ${WORDS.length}`;
+    progressPill.textContent = `${Math.max(0, idx + 1)} / ${words.length}`;
+  }
+
+  function speechSpeakingSupported() {
+    return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  }
+
+  function speechListeningSupported() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
+  function updateSupportText() {
+    const speakOk = speechSpeakingSupported();
+    const listenOk = speechListeningSupported();
+    supportText.innerHTML =
+      `Speaking: <b>${speakOk ? "Yes" : "No"}</b><br/>` +
+      `Listening: <b>${listenOk ? "Yes" : "No"}</b> (If No, use typed mode)`;
   }
 
   function updateUIEnabled(started) {
@@ -214,14 +253,6 @@
     listenBtn.disabled = !started || typing || !speechListeningSupported();
   }
 
-  function speechSpeakingSupported() {
-    return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
-  }
-
-  function speechListeningSupported() {
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  }
-
   function pickVoice() {
     const selectedName = voiceSelect.value;
     const v = voices.find(x => x.name === selectedName);
@@ -230,7 +261,7 @@
 
   function speak(text) {
     if (!speechSpeakingSupported()) {
-      setStatus("This device/browser can’t speak the word out loud. Try a different browser.", "bad");
+      setStatus("This device/browser can’t speak out loud. Try a different browser.", "bad");
       return;
     }
     window.speechSynthesis.cancel();
@@ -247,4 +278,268 @@
     if (!current) return;
     sentenceDisplay.textContent = "";
     speak(`Your word is: ${current.word}.`);
-    setStatus("Listen carefully. When
+    setStatus("Listen carefully. Then spell it.", "neutral");
+  }
+
+  function saySentence() {
+    if (!current) return;
+    const sent = current.sentence ? current.sentence : `The word is ${current.word}.`;
+    sentenceDisplay.textContent = sent;
+    speak(sent);
+  }
+
+  function showWord() {
+    current = words[idx];
+    wordDisplay.textContent = "—"; // don't show answer by default
+    sentenceDisplay.textContent = "";
+    updateProgress();
+    sayWord();
+  }
+
+  function nextWord() {
+    if (!words.length) {
+      setStatus("Your list is empty. Paste words on the right and click <b>Load list</b>.", "bad");
+      return;
+    }
+    idx = (idx + 1) % words.length;
+    showWord();
+    typedInput.value = "";
+    typedInput.focus();
+  }
+
+  function revealAnswer() {
+    if (!current) return;
+    wordDisplay.textContent = current.word;
+    setStatus(`Answer: <b>${current.word}</b>`, "neutral");
+  }
+
+  function parseList(text) {
+    const lines = (text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const parsed = [];
+    for (const line of lines) {
+      const parts = line.split("|").map(p => p.trim());
+      const w = parts[0];
+      if (!w) continue;
+      const sentence = parts[1] ? parts[1] : "";
+      parsed.push({ word: w, sentence });
+    }
+    return parsed;
+  }
+
+  function renderPreview() {
+    const preview = words.slice(0, 30).map((w, i) => {
+      const s = w.sentence ? ` | ${w.sentence}` : "";
+      return `${String(i+1).padStart(2,"0")}. ${w.word}${s}`;
+    }).join("\n");
+    listPreview.textContent = preview + (words.length > 30 ? `\n… (${words.length-30} more)` : "");
+    updateProgress();
+  }
+
+  function shuffleInPlace(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  // -----------------------------
+  // Speech Recognition (listening)
+  // -----------------------------
+  function initRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    const r = new SR();
+    r.lang = "en-US";
+    r.interimResults = false;
+    r.maxAlternatives = 3;
+
+    r.onresult = (event) => {
+      const transcript = event.results[0][0].transcript || "";
+      // Expect kids to say letters: "w i n t e r" or "double o" etc.
+      // We'll just strip non-letters and compare.
+      const heard = normalize(transcript);
+      const target = normalize(current?.word || "");
+      if (!target) return;
+
+      if (heard === target) {
+        setStatus("Correct. Nice work.", "ok");
+        speak("Correct. Nice work.");
+      } else {
+        setStatus(`Not quite. I heard: <span class="mono">${transcript}</span>. Try again, or switch to typing.`, "bad");
+        speak("Not quite. Try again.");
+      }
+    };
+
+    r.onerror = (e) => {
+      setStatus(`Listening error: <span class="mono">${e.error}</span>. Switch to typing if needed.`, "bad");
+      isListening = false;
+      listenBtn.textContent = "🎙️ Listen";
+    };
+
+    r.onend = () => {
+      isListening = false;
+      listenBtn.textContent = "🎙️ Listen";
+    };
+
+    return r;
+  }
+
+  function startListening() {
+    if (!speechListeningSupported()) {
+      setStatus("Listening isn't supported on this browser. Switch to typed mode.", "bad");
+      return;
+    }
+    if (!current) {
+      setStatus("Press <b>Start</b> first.", "bad");
+      return;
+    }
+    if (!recognition) recognition = initRecognition();
+    if (!recognition) {
+      setStatus("Listening couldn't be initialized. Switch to typed mode.", "bad");
+      return;
+    }
+    if (isListening) return;
+
+    try {
+      isListening = true;
+      listenBtn.textContent = "Listening…";
+      setStatus("Spell the word out loud (letters).", "neutral");
+      recognition.start();
+    } catch (e) {
+      // Some browsers throw if start is called twice quickly
+      isListening = false;
+      listenBtn.textContent = "🎙️ Listen";
+      setStatus("Couldn’t start listening. Try again, or use typed mode.", "bad");
+    }
+  }
+
+  function checkTyped() {
+    if (!current) {
+      setStatus("Press <b>Start</b> first.", "bad");
+      return;
+    }
+    const guess = normalize(typedInput.value);
+    const target = normalize(current.word);
+    if (!guess) {
+      setStatus("Type the spelling, then press <b>Check</b>.", "neutral");
+      return;
+    }
+    if (guess === target) {
+      setStatus("Correct. Nice work.", "ok");
+      speak("Correct. Nice work.");
+    } else {
+      setStatus(`Not quite. Try again.`, "bad");
+      speak("Not quite. Try again.");
+    }
+  }
+
+  // -----------------------------
+  // Voices
+  // -----------------------------
+  function loadVoices() {
+    voices = window.speechSynthesis?.getVoices?.() || [];
+    voiceSelect.innerHTML = "";
+    if (!voices.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Default voice";
+      voiceSelect.appendChild(opt);
+      return;
+    }
+
+    // Prefer an English voice if available
+    const preferred = voices.find(v => (v.lang || "").startsWith("en")) || voices[0];
+
+    for (const v of voices) {
+      const opt = document.createElement("option");
+      opt.value = v.name;
+      opt.textContent = `${v.name} (${v.lang})`;
+      voiceSelect.appendChild(opt);
+    }
+    voiceSelect.value = preferred.name;
+  }
+
+  // -----------------------------
+  // Events
+  // -----------------------------
+  startBtn.addEventListener("click", () => {
+    if (!words.length) {
+      setStatus("Your list is empty. Paste words on the right and click <b>Load list</b>.", "bad");
+      return;
+    }
+    idx = -1;
+    updateUIEnabled(true);
+    nextWord();
+  });
+
+  nextBtn.addEventListener("click", nextWord);
+  repeatBtn.addEventListener("click", sayWord);
+  sentenceBtn.addEventListener("click", saySentence);
+  revealBtn.addEventListener("click", revealAnswer);
+
+  modeSelect.addEventListener("change", () => {
+    updateUIEnabled(idx >= 0);
+    if (modeSelect.value === "type") typedInput.focus();
+  });
+
+  listenBtn.addEventListener("click", startListening);
+  checkTypedBtn.addEventListener("click", checkTyped);
+  typedInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkTyped();
+  });
+
+  loadListBtn.addEventListener("click", () => {
+    const parsed = parseList(listInput.value);
+    if (!parsed.length) {
+      setStatus("I didn’t find any words. Paste one word per line (optional sentence after <span class='mono'>|</span>).", "bad");
+      return;
+    }
+    words = parsed;
+    idx = -1;
+    current = null;
+    wordDisplay.textContent = "—";
+    sentenceDisplay.textContent = "";
+    renderPreview();
+    setStatus(`Loaded <b>${words.length}</b> words. Press <b>Start</b>.`, "ok");
+    updateUIEnabled(false);
+  });
+
+  shuffleBtn.addEventListener("click", () => {
+    shuffleInPlace(words);
+    idx = -1;
+    current = null;
+    renderPreview();
+    setStatus("Shuffled the list. Press <b>Start</b>.", "neutral");
+    updateUIEnabled(false);
+  });
+
+  resetBtn.addEventListener("click", () => {
+    words = JSON.parse(JSON.stringify(STARTER_WORDS));
+    idx = -1;
+    current = null;
+    listInput.value = "";
+    wordDisplay.textContent = "—";
+    sentenceDisplay.textContent = "";
+    renderPreview();
+    setStatus("Reset to the starter list. Press <b>Start</b>.", "neutral");
+    updateUIEnabled(false);
+  });
+
+  // -----------------------------
+  // Init
+  // -----------------------------
+  updateSupportText();
+  renderPreview();
+  updateUIEnabled(false);
+
+  // Voices may load async
+  if (speechSpeakingSupported()) {
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  } else {
+    voiceSelect.innerHTML = "<option>Speaking not supported</option>";
+  }
+})();
+</script>
+</body>
+</html>
