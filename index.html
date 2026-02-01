@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spelling Bee Practice</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; padding: 18px; background: #f7f7f8; color: #111; }
+    .card { max-width: 920px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    h1 { margin: 0 0 8px; font-size: 20px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    button, select, input[type="text"] {
+      font-size: 16px; padding: 10px 12px; border-radius: 12px; border: 1px solid #ddd; background: #fff;
+    }
+    button { cursor: pointer; }
+    button.primary { background: #111; color: #fff; border-color: #111; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .pill { display:inline-block; padding: 6px 10px; border-radius: 999px; background:#f1f1f3; border:1px solid #e6e6e8; font-size: 13px; }
+    .status { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background:#f8fafc; border:1px solid #e5e7eb; }
+    .ok { border-color:#bbf7d0; background:#f0fdf4; }
+    .bad { border-color:#fecaca; background:#fef2f2; }
+    .hint { color:#444; font-size: 14px; line-height: 1.4; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+    @media (min-width: 780px) { .grid { grid-template-columns: 1.2fr .8fr; } }
+    .box { border: 1px solid #eee; border-radius: 14px; padding: 12px; background:#fff; }
+    .label { font-size: 12px; color:#555; margin-bottom: 6px; }
+    .big { font-size: 22px; font-weight: 650; letter-spacing: .2px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .small { font-size: 13px; color:#555; }
+    .footer { margin-top: 12px; font-size: 12px; color:#666; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Spelling Bee Practice</h1>
+    <div class="hint">
+      Calm, teacher-like practice. The app can <b>say the word</b>. It can also <b>listen to spelling</b> on some devices/browsers, with typing always available.
+    </div>
+
+    <div class="grid">
+      <div class="box">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div class="label">Current word</div>
+            <div id="wordDisplay" class="big">—</div>
+            <div id="sentenceDisplay" class="small" style="margin-top:6px;"></div>
+          </div>
+          <div class="pill" id="progressPill">0 / 0</div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" id="startBtn">Start</button>
+          <button id="repeatBtn" disabled>Repeat</button>
+          <button id="sentenceBtn" disabled>Say sentence</button>
+          <button id="nextBtn" disabled>Next word</button>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <span class="label" style="margin:0;">Mode</span>
+          <select id="modeSelect">
+            <option value="speak">Speak spelling (if supported)</option>
+            <option value="type">Type spelling</option>
+          </select>
+
+          <button id="listenBtn" disabled>🎙️ Listen</button>
+
+          <input id="typedInput" type="text" placeholder="Type spelling here…" style="flex:1; min-width: 220px;" disabled />
+          <button id="checkTypedBtn" disabled>Check</button>
+        </div>
+
+        <div id="status" class="status" style="margin-top:12px;">
+          <div class="label">Status</div>
+          <div id="statusText">Press <b>Start</b> to begin.</div>
+        </div>
+
+        <div class="footer">
+          Tip: If speech listening doesn’t work on an iPad/iPhone browser, switch Mode to <b>Type spelling</b>.
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="label">Settings</div>
+
+        <div class="row" style="margin-top:6px;">
+          <span class="label" style="margin:0;">Voice</span>
+          <select id="voiceSelect" style="flex:1; min-width: 240px;"></select>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <span class="label" style="margin:0;">Speed</span>
+          <select id="rateSelect">
+            <option value="0.85">Slower</option>
+            <option value="1" selected>Normal</option>
+            <option value="1.15">Slightly faster</option>
+          </select>
+
+          <span class="label" style="margin:0;">Pitch</span>
+          <select id="pitchSelect">
+            <option value="0.9">Lower</option>
+            <option value="1" selected>Normal</option>
+            <option value="1.1">Slightly higher</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="shuffleBtn">Shuffle list</button>
+          <button id="revealBtn" disabled>Reveal answer</button>
+        </div>
+
+        <div class="status" style="margin-top:12px;">
+          <div class="label">Word list (editable in code)</div>
+          <div class="small">
+            Right now this is a starter set. If you paste Oliver’s real list, I’ll format it for you.
+          </div>
+          <div id="listPreview" class="small mono" style="margin-top:8px; white-space:pre-wrap;"></div>
+        </div>
+
+        <div class="status" style="margin-top:12px;">
+          <div class="label">Device support</div>
+          <div id="supportText" class="small"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // -----------------------------
+  // 1) EDIT YOUR WORD LIST HERE
+  // -----------------------------
+  // Each entry: { word: "winter", sentence: "In winter, we wear warm coats." }
+  const WORDS = [
+    { word: "winter", sentence: "In winter, we wear warm coats." },
+    { word: "animal", sentence: "A dog is an animal." },
+    { word: "helpful", sentence: "It is helpful to share." },
+    { word: "because", sentence: "I wore boots because it was raining." },
+    { word: "beautiful", sentence: "The sunset was beautiful." },
+    { word: "remember", sentence: "Please remember to bring your book." },
+    { word: "library", sentence: "We borrowed a book from the library." },
+    { word: "imagine", sentence: "Imagine you can fly." },
+    { word: "practice", sentence: "Practice makes progress." },
+    { word: "favorite", sentence: "Blue is my favorite color." },
+  ];
+
+  // -----------------------------
+  // 2) STATE
+  // -----------------------------
+  let idx = -1;
+  let current = null;
+  let voices = [];
+  let recognition = null;
+  let isListening = false;
+
+  // -----------------------------
+  // 3) ELEMENTS
+  // -----------------------------
+  const el = (id) => document.getElementById(id);
+  const wordDisplay = el("wordDisplay");
+  const sentenceDisplay = el("sentenceDisplay");
+  const progressPill = el("progressPill");
+  const statusBox = el("status");
+  const statusText = el("statusText");
+
+  const startBtn = el("startBtn");
+  const repeatBtn = el("repeatBtn");
+  const sentenceBtn = el("sentenceBtn");
+  const nextBtn = el("nextBtn");
+  const revealBtn = el("revealBtn");
+  const shuffleBtn = el("shuffleBtn");
+
+  const modeSelect = el("modeSelect");
+  const listenBtn = el("listenBtn");
+  const typedInput = el("typedInput");
+  const checkTypedBtn = el("checkTypedBtn");
+
+  const voiceSelect = el("voiceSelect");
+  const rateSelect = el("rateSelect");
+  const pitchSelect = el("pitchSelect");
+  const listPreview = el("listPreview");
+  const supportText = el("supportText");
+
+  // -----------------------------
+  // 4) UTIL
+  // -----------------------------
+  function setStatus(message, kind = "neutral") {
+    statusBox.classList.remove("ok", "bad");
+    if (kind === "ok") statusBox.classList.add("ok");
+    if (kind === "bad") statusBox.classList.add("bad");
+    statusText.innerHTML = message;
+  }
+
+  function normalize(s) {
+    return (s || "")
+      .toLowerCase()
+      .replace(/[^a-z]/g, ""); // remove spaces, hyphens, etc.
+  }
+
+  function updateProgress() {
+    progressPill.textContent = `${Math.max(0, idx + 1)} / ${WORDS.length}`;
+  }
+
+  function updateUIEnabled(started) {
+    repeatBtn.disabled = !started;
+    sentenceBtn.disabled = !started;
+    nextBtn.disabled = !started;
+    revealBtn.disabled = !started;
+
+    const mode = modeSelect.value;
+    const typing = mode === "type";
+    typedInput.disabled = !started || !typing;
+    checkTypedBtn.disabled = !started || !typing;
+
+    listenBtn.disabled = !started || typing || !speechListeningSupported();
+  }
+
+  function speechSpeakingSupported() {
+    return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  }
+
+  function speechListeningSupported() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
+  function pickVoice() {
+    const selectedName = voiceSelect.value;
+    const v = voices.find(x => x.name === selectedName);
+    return v || voices[0] || null;
+  }
+
+  function speak(text) {
+    if (!speechSpeakingSupported()) {
+      setStatus("This device/browser can’t speak the word out loud. Try a different browser.", "bad");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice();
+    if (v) u.voice = v;
+    u.rate = parseFloat(rateSelect.value);
+    u.pitch = parseFloat(pitchSelect.value);
+    u.volume = 1.0;
+    window.speechSynthesis.speak(u);
+  }
+
+  function sayWord() {
+    if (!current) return;
+    sentenceDisplay.textContent = "";
+    speak(`Your word is: ${current.word}.`);
+    setStatus("Listen carefully. When
